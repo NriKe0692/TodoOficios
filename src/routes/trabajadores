@@ -20,7 +20,15 @@ conexion.connect(function (err) {
 });
 
 router.get('/trabajadores', (req, res) => {
-    conexion.query(`SELECT * FROM trabajador`, function (error, results, fields) {
+    /* SELECT nombreTrabajador, apellidoTrabajador, dni, direccion, distrito, telefono, sobreMi, correo, 
+       (
+           SELECT trabajador_especialidad.idEspecialidad FROM trabajador_especialidad LEFT JOIN trabajador ON trabajador_especialidad.idTrabajador = trabajador.idTrabajador
+       ) 
+       FROM trabajador  */
+    conexion.query(`SELECT t.nombreTrabajador, t.apellidoTrabajador, t.dni, t.direccion, t.distrito, t.telefono, t.sobreMi, t.correo, e.nombreEspecialidad
+    FROM trabajador_especialidad te
+    JOIN trabajador t ON te.idTrabajador = t.idTrabajador
+    JOIN especialidad e ON te.idEspecialidad = e.idEspecialidad`, function (error, results, fields) {
         if (error)
             throw error;
 
@@ -50,11 +58,11 @@ router.post('/trabajadores', (req, res) => {
         ]
     }*/
 
-    const { nombreTrabajador, apellidoTrabajador, dni, direccion, distrito, telefono, especialidades } = req.body;
+    const { nombreTrabajador, apellidoTrabajador, dni, direccion, distrito, telefono, especialidades, sobreMi, correo} = req.body;
 
-    if (nombreTrabajador && apellidoTrabajador && dni && direccion && distrito && telefono && especialidades) {
+    if (nombreTrabajador && apellidoTrabajador && dni && direccion && distrito && telefono && especialidades && sobreMi && correo) {
         console.log('especialidades: ' + JSON.stringify(especialidades));
-        conexion.query('INSERT INTO trabajador (nombreTrabajador, apellidoTrabajador, dni, direccion, distrito, telefono) VALUES("' + nombreTrabajador + '", "' + apellidoTrabajador + '", "' + dni + '", "' + direccion + '", "' + distrito + '", "' + telefono + '")', function (error, results) {
+        conexion.query('INSERT INTO trabajador (nombreTrabajador, apellidoTrabajador, dni, direccion, distrito, telefono, sobreMi, correo) VALUES("' + nombreTrabajador + '", "' + apellidoTrabajador + '", "' + dni + '", "' + direccion + '", "' + distrito + '", "' + telefono + '", "' + sobreMi + '", "' + correo + '")', function (error, results) {
             if (error)
                 throw error;
 
