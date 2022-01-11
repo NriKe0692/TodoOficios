@@ -1,0 +1,57 @@
+const { Router } = require('express');
+const router = Router();
+
+// DB Conection
+var mysql = require('mysql');
+
+var conexion = mysql.createConnection({
+    host: 'localhost',
+    database: 'todooficios',
+    user: 'root',
+    password: 'root',
+});
+
+conexion.connect(function (err) {
+    if (err) {
+        console.error('Error de conexion: ' + err.stack);
+        return;
+    }
+    console.log('Conectado con el identificador ' + conexion.threadId);
+});
+
+router.get('/distritos', (req, res) => {
+    conexion.query(`SELECT * FROM distrito`, function (error, results, fields) {
+        if (error)
+            throw error;
+
+        res.json(results);
+    });
+});
+
+router.post('/distritos', (req, res) => {
+    const {nombreDistrito, codigoPostal, codigoDistrito} = req.body;
+
+    if(nombreDistrito && codigoPostal && codigoDistrito){
+        conexion.query('INSERT INTO distrito (nombreDistrito, codigoPostal, codigoDistrito) VALUES ("' + nombreDistrito + '", "' + codigoPostal + '", "' + codigoDistrito + '")', function (error, results) {
+            if (error)
+                throw error;
+
+            res.send('Received')
+        });
+    }else{
+        res.send('Failed');
+    }
+});
+
+router.get('/distritos/:id', (req, res) => {
+    console.log(req.params);
+
+    conexion.query('SELECT * FROM distrito WHERE idDistrito = ' + req.params.id, function (error, results, fields) {
+        if (error)
+            throw error;
+
+        res.json(results);
+    });
+});
+
+module.exports = router;

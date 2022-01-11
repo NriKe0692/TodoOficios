@@ -1,0 +1,57 @@
+const { Router } = require('express');
+const router = Router();
+
+// DB Conection
+var mysql = require('mysql');
+
+var conexion = mysql.createConnection({
+    host: 'localhost',
+    database: 'todooficios',
+    user: 'root',
+    password: 'root',
+});
+
+conexion.connect(function (err) {
+    if (err) {
+        console.error('Error de conexion: ' + err.stack);
+        return;
+    }
+    console.log('Conectado con el identificador ' + conexion.threadId);
+});
+
+router.get('/especialidades', (req, res) => {
+    conexion.query(`SELECT * FROM especialidad`, function (error, results, fields) {
+        if (error)
+            throw error;
+
+        res.json(results);
+    });
+});
+
+router.post('/especialidades', (req, res) => {
+    const {nombreEspecialidad, descripcionEspecialidad, costoHora} = req.body;
+
+    if(nombreEspecialidad && descripcionEspecialidad && costoHora){
+        conexion.query('INSERT INTO especialidad (nombreEspecialidad, descripcionEspecialidad, costoHora) VALUES("' + nombreEspecialidad + '", "' + descripcionEspecialidad + '", "' + costoHora + '")', function (error, results) {
+            if (error)
+                throw error;
+
+            res.send('Received')
+        });
+    }else{
+        res.send('Failed');
+    }
+});
+
+router.get('/especialidades/:id', (req, res) => {
+    console.log(req.params);
+
+    conexion.query('SELECT * FROM especialidad WHERE idEspecialidad = ' + req.params.id, function (error, results, fields) {
+        if (error)
+            throw error;
+
+        res.json(results);
+    });
+});
+
+module.exports = router;
