@@ -25,7 +25,7 @@ router.get('/trabajadores', (req, res) => {
            SELECT trabajador_especialidad.idEspecialidad FROM trabajador_especialidad LEFT JOIN trabajador ON trabajador_especialidad.idTrabajador = trabajador.idTrabajador
        ) 
        FROM trabajador  */
-    conexion.query(`SELECT t.nombreTrabajador, t.apellidoTrabajador, t.dni, t.direccion, t.distrito, t.telefono, t.sobreMi, t.correo, e.nombreEspecialidad
+    conexion.query(`SELECT t.idTrabajador, t.nombreTrabajador, t.apellidoTrabajador, t.dni, t.direccion, t.distrito, t.telefono, t.sobreMi, t.correo, e.nombreEspecialidad, e.idEspecialidad
     FROM trabajador_especialidad te
     JOIN trabajador t ON te.idTrabajador = t.idTrabajador
     JOIN especialidad e ON te.idEspecialidad = e.idEspecialidad`, function (error, results, fields) {
@@ -76,7 +76,7 @@ router.post('/trabajadores', (req, res) => {
                     res.write('Received')
                 });
             }
-            res.send('Received')
+            res.send({message: 'Received'})
         });
 
         
@@ -88,7 +88,8 @@ router.post('/trabajadores', (req, res) => {
 router.get('/trabajadores/:id', (req, res) => {
     console.log(req.params);
 
-    conexion.query('SELECT * FROM trabajador WHERE idTrabajador = ' + req.params.id, function (error, results, fields) {
+    conexion.query('SELECT * FROM trabajador JOIN distrito ON distrito.idDistrito = trabajador.distrito'
+        + ' WHERE idTrabajador = ' + req.params.id, function (error, results, fields) {
         if (error)
             throw error;
 
