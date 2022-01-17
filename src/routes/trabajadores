@@ -139,8 +139,13 @@ router.post('/trabajadores', (req, res) => {
 router.get('/trabajadores/:id', (req, res) => {
     console.log(req.params);
 
-    conexion.query('SELECT * FROM trabajador JOIN distrito ON distrito.idDistrito = trabajador.distrito'
-        + ' WHERE idTrabajador = ' + req.params.id, function (error, results, fields) {
+    conexion.query("SELECT t.*, d.nombreDistrito, "+
+        "json_arrayagg(json_object('id', e.idEspecialidad,'nombre', e.nombreEspecialidad)) AS especialidades " +
+        "FROM trabajador t "+ 
+        "JOIN trabajador_especialidad te ON te.idTrabajador = t.idTrabajador " + 
+        "JOIN especialidad e ON te.idEspecialidad = e.idEspecialidad " +
+        'JOIN distrito d ON d.idDistrito = t.distrito ' + 
+        'WHERE t.idTrabajador = ' + req.params.id, function (error, results, fields) {
             if (error)
                 throw error;
 
@@ -157,6 +162,19 @@ router.get('/trabajadoresEspecialidad/:id', (req, res) => {
 
             res.json(results);
         });
+});
+
+router.get('/trabajadores/:id/proyectos', (req, res) => {
+    conexion.query('SELECT p.*, c.nombreCliente, e.nombreEspecialidad ' + 
+        "FROM proyecto p " +
+        'JOIN cliente c ON c.idCliente = p.idCliente ' +
+        'JOIN especialidad e ON e.idEspecialidad = p.especialidad ' +
+        'WHERE p.idTrabajador = ' + req.params.id, function(error, results, fields) {
+        if (error)
+            throw error;
+
+        res.json(results);
+    });
 });
 
 module.exports = router;
