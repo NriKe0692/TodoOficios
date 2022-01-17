@@ -20,11 +20,6 @@ conexion.connect(function (err) {
 });
 
 router.get('/trabajadores', (req, res) => {
-    /* SELECT nombreTrabajador, apellidoTrabajador, dni, direccion, distrito, telefono, sobreMi, correo, 
-       (
-           SELECT trabajador_especialidad.idEspecialidad FROM trabajador_especialidad LEFT JOIN trabajador ON trabajador_especialidad.idTrabajador = trabajador.idTrabajador
-       ) 
-       FROM trabajador  */
     conexion.query(`SELECT t.idTrabajador, t.nombreTrabajador, t.apellidoTrabajador, t.dni, t.direccion, t.distrito, t.telefono, t.sobreMi, t.correo, e.nombreEspecialidad, e.idEspecialidad
     FROM trabajador_especialidad te
     JOIN trabajador t ON te.idTrabajador = t.idTrabajador
@@ -37,49 +32,105 @@ router.get('/trabajadores', (req, res) => {
 });
 
 router.post('/trabajadores', (req, res) => {
-
-    /*var example = {
-        "nombreTrabajador": "luis",
-        "apellidoTrabajador": "luis",
-        "dni": "78965412",
-        "direccion": "luis",
-        "distrito": "27",
-        "telefono": "987654321",
-        "especialidades": [
-            {
-                "idEspecialidad": "1"
-            },
-            {
-                "idEspecialidad": "2"
-            },
-            {
-                "idEspecialidad": "3"
-            }
-        ]
-    }*/
-
-    const { nombreTrabajador, apellidoTrabajador, dni, direccion, distrito, telefono, especialidades, sobreMi, correo} = req.body;
+    const { nombreTrabajador, apellidoTrabajador, dni, direccion, distrito, telefono, especialidades, sobreMi, correo } = req.body;
 
     if (nombreTrabajador && apellidoTrabajador && dni && direccion && distrito && telefono && especialidades && sobreMi && correo) {
-        console.log('especialidades: ' + JSON.stringify(especialidades));
-        conexion.query('INSERT INTO trabajador (nombreTrabajador, apellidoTrabajador, dni, direccion, distrito, telefono, sobreMi, correo) VALUES("' + nombreTrabajador + '", "' + apellidoTrabajador + '", "' + dni + '", "' + direccion + '", "' + distrito + '", "' + telefono + '", "' + sobreMi + '", "' + correo + '")', function (error, results) {
-            if (error)
+
+        conexion.query(`SELECT * FROM trabajador WHERE dni = "` + dni + '"', function (error, results, fields) {
+            if (error) {
                 throw error;
+            }
 
-            var insertId = results.insertId;
+            if (results.length != 0) {
+                var idTrabajador = results[0].idTrabajador;
 
-            for(var i = 0; i < especialidades.length; i++){
-                conexion.query('INSERT INTO trabajador_especialidad (idTrabajador, idEspecialidad) VALUES("' + insertId + '", "' + especialidades[i].idEspecialidad + '")', function (error, results) {
-                    if (error)
+                // Validar que no exista la especialidad seleccionada
+
+                var arrEspecialidadesIds = [];
+                var strEspecialidadesIds = '';
+
+                for (var i = 0; i < especialidades.length; i++) {
+                    var id = especialidades[i].idEspecialidad;
+                    arrEspecialidadesIds.push(especialidades[i].idEspecialidad);
+                    strEspecialidadesIds += id + ',';
+                }
+
+                strEspecialidadesIds = strEspecialidadesIds.substring(0, strEspecialidadesIds.length - 1);
+
+                conexion.query('SELECT * FROM trabajador_especialidad WHERE idTrabajador = "' + idTrabajador + '"', function (error, results2, fields) {
+                    if (error) {
                         throw error;
-        
-                    res.write('Received')
+                    }
+
+                    console.log('arrEspecialidadesIds: ' + arrEspecialidadesIds);
+
+                    console.log('results2: ' + JSON.stringify(results2));
+
+                    var ArrEspecialidadesPorCrear = [];
+
+                    // Recorre Especialidades Registradas
+
+                    for (var i = 0; i < arrEspecialidadesIds.length; i++) {
+                        for (var j = 0; j < results2.length; j++) {
+                            if (results2[j].idEspecialidad == arrEspecialidadesIds[i]) {
+                                break;
+                            }
+
+                            if (j == results2.length - 1) {
+                                ArrEspecialidadesPorCrear.push(arrEspecialidadesIds[i]);
+                            }
+                        }
+                    }
+
+                    console.log('ArrEspecialidadesPorCrear: ' + ArrEspecialidadesPorCrear);
+
+                    if (ArrEspecialidadesPorCrear.length != 0) {
+                        conexion.query('INSERT INTO trabajador (nombreTrabajador, apellidoTrabajador, dni, direccion, distrito, telefono, sobreMi, correo) VALUES("' + nombreTrabajador + '", "' + apellidoTrabajador + '", "' + dni + '", "' + direccion + '", "' + distrito + '", "' + telefono + '", "' + sobreMi + '", "' + correo + '")', function (error, results) {
+                            if (error) {
+                                throw error;
+                            }
+
+                            for (var i = 0; i < ArrEspecialidadesPorCrear.length; i++) {
+                                conexion.query('INSERT INTO trabajador_especialidad (idTrabajador, idEspecialidad) VALUES("' + idTrabajador + '", "' + ArrEspecialidadesPorCrear[i] + '")', function (error, results) {
+                                    if (error) {
+                                        throw error;
+                                    }
+
+                                    console.log('creado');
+
+                                    //res.send({ message: 'Received' })
+                                });
+                            }
+
+                            res.send({ message: 'Se crearon las especialidades para el trabajador.' })
+                        });
+                    } else {
+                        if (especialidades.length == 1) {
+                            res.status(400).send({ message: 'Ya existe el trabajador con esa especialidad.' });
+                        } else {
+                            res.status(400).send({ message: 'Ya existe el trabajador con esas especialidades.' });
+                        }
+                    }
+                });
+            } else {
+                conexion.query('INSERT INTO trabajador (nombreTrabajador, apellidoTrabajador, dni, direccion, distrito, telefono, sobreMi, correo) VALUES("' + nombreTrabajador + '", "' + apellidoTrabajador + '", "' + dni + '", "' + direccion + '", "' + distrito + '", "' + telefono + '", "' + sobreMi + '", "' + correo + '")', function (error, results) {
+                    if (error) {
+                        throw error;
+                    }
+
+                    var insertId = results.insertId;
+
+                    for (var i = 0; i < especialidades.length; i++) {
+                        conexion.query('INSERT INTO trabajador_especialidad (idTrabajador, idEspecialidad) VALUES("' + insertId + '", "' + especialidades[i].idEspecialidad + '")', function (error, results) {
+                            if (error) {
+                                throw error;
+                            }
+                        });
+                    }
+                    res.send({ message: 'Se crearon las especialidades para el trabajador.' })
                 });
             }
-            res.send({message: 'Received'})
         });
-
-        
     } else {
         res.send('Failed');
     }
@@ -90,11 +141,22 @@ router.get('/trabajadores/:id', (req, res) => {
 
     conexion.query('SELECT * FROM trabajador JOIN distrito ON distrito.idDistrito = trabajador.distrito'
         + ' WHERE idTrabajador = ' + req.params.id, function (error, results, fields) {
-        if (error)
-            throw error;
+            if (error)
+                throw error;
 
-        res.json(results);
-    });
+            res.json(results);
+        });
+});
+
+router.get('/trabajadoresEspecialidad/:id', (req, res) => {
+    console.log(req.params);
+    conexion.query('SELECT e.* FROM todooficios.especialidad e JOIN todooficios.trabajador_especialidad te ON te.idEspecialidad = e.idEspecialidad'
+        + ' WHERE idTrabajador = ' + req.params.id, function (error, results, fields) {
+            if (error)
+                throw error;
+
+            res.json(results);
+        });
 });
 
 module.exports = router;

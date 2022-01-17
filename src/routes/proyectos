@@ -56,4 +56,14 @@ router.get('/proyectos/:id', (req, res) => {
     });
 });
 
+router.get('/proyectosTrabajador/:id', (req, res) => {
+    conexion.query('SELECT * FROM proyecto WHERE idTrabajador = "' + req.params.id + '"', function (error, results, fields) {
+        if (error) {
+            throw error;
+        }
+
+        res.json(results);
+    });
+});
+
 module.exports = router;
