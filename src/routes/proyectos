@@ -57,6 +57,39 @@ router.get('/proyectos/:id', (req, res) => {
 });
 
 router.get('/proyectosTrabajador/:id', (req, res) => {
+    console.log(req.params);
+
+    conexion.query('SELECT * FROM proyecto WHERE idTrabajador = ' + req.params.id, function (error, results, fields) {
+        if (error)
+            throw error;
+
+        res.json(results);
+    });
+});
+
+router.get('/proyectosCliente/:id', (req, res) => {
+    console.log(req.params);
+
+    conexion.query('SELECT * FROM proyecto WHERE idCliente = ' + req.params.id, function (error, results, fields) {
+        if (error)
+            throw error;
+
+        res.json(results);
+    });
+});
+
+router.put('/proyectosCliente/:id/:nuevoEstado', (req, res) => {
+    conexion.query('UPDATE proyecto SET estado = '  + req.params.nuevoEstado + ' WHERE idProyecto = ' + req.params.id + '', function (error, results, fields) {
+        if (error)
+            throw error;
+
+        res.json({"message": "Estado Actualizado con éxito."});
+    });
+});
+
+
+
+router.get('/proyectosTrabajador/:id', (req, res) => {
     conexion.query('SELECT * FROM proyecto WHERE idTrabajador = "' + req.params.id + '"', function (error, results, fields) {
         if (error) {
             throw error;
