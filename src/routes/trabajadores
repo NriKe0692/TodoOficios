@@ -20,10 +20,11 @@ conexion.connect(function (err) {
 });
 
 router.get('/trabajadores', (req, res) => {
-    conexion.query(`SELECT t.idTrabajador, t.nombreTrabajador, t.apellidoTrabajador, t.dni, t.direccion, t.distrito, t.telefono, t.sobreMi, t.correo, e.nombreEspecialidad, e.idEspecialidad
+    conexion.query(`SELECT t.idTrabajador, t.nombreTrabajador, t.apellidoTrabajador, t.dni, t.direccion, t.distrito, t.telefono, t.sobreMi, t.correo, json_arrayagg(json_object('id', e.idEspecialidad,'nombre', e.nombreEspecialidad)) AS especialidades
     FROM trabajador_especialidad te
     JOIN trabajador t ON te.idTrabajador = t.idTrabajador
-    JOIN especialidad e ON te.idEspecialidad = e.idEspecialidad`, function (error, results, fields) {
+    JOIN especialidad e ON te.idEspecialidad = e.idEspecialidad
+    GROUP BY t.idTrabajador`, function (error, results, fields) {
         if (error)
             throw error;
 
