@@ -38,7 +38,7 @@ router.post('/clientes', (req, res) => {
                 throw error;
 
             if(results.length != 0){
-                res.status(400).json({'message': "El dni ya se ha registrado."});
+                res.status(400).send({'message': "El dni ya se ha registrado."});
             }else{
                 conexion.query('INSERT INTO cliente (nombreCliente, apellidosCliente, dni, direccion, distrito, telefono, correo, password) VALUES("' + nombreCliente + '", "' + apellidosCliente + '", "' + dni + '", "' + direccion + '", "' + distrito + '", "' + telefono + '", "' + correo + '", "' + password + '")', function (error, results) {
                     if (error)
@@ -49,7 +49,7 @@ router.post('/clientes', (req, res) => {
             }
         });
     }else{
-        res.send('Failed');
+        res.status(400).send('Failed');
     }
 });
 
