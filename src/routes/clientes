@@ -70,7 +70,8 @@ router.get('/clientesLogin/:email/:password', (req, res) => {
     console.log('req.params.email: ' + req.params.email);
     console.log('req.params.password: ' + req.params.password);
 
-    conexion.query('SELECT * FROM cliente WHERE correo = "' + req.params.email + '" AND password = "' + req.params.password + '"', function (error, results, fields) {
+    conexion.query('SELECT * FROM cliente c JOIN distrito d ON c.distrito = d.idDistrito ' + 
+    'WHERE c.correo = "' + req.params.email + '" AND c.password = "' + req.params.password + '"', function (error, results, fields) {
         if (error)
             throw error;
 
