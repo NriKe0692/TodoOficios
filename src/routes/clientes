@@ -38,7 +38,7 @@ router.post('/clientes', (req, res) => {
                 throw error;
 
             if(results.length != 0){
-                res.status(400).json({'message': "El dni ya se ha registrado."});
+                res.status(400).send({'message': "El dni ya se ha registrado."});
             }else{
                 conexion.query('INSERT INTO cliente (nombreCliente, apellidosCliente, dni, direccion, distrito, telefono, correo, password) VALUES("' + nombreCliente + '", "' + apellidosCliente + '", "' + dni + '", "' + direccion + '", "' + distrito + '", "' + telefono + '", "' + correo + '", "' + password + '")', function (error, results) {
                     if (error)
@@ -49,7 +49,7 @@ router.post('/clientes', (req, res) => {
             }
         });
     }else{
-        res.send('Failed');
+        res.status(400).send('Failed');
     }
 });
 
@@ -70,7 +70,8 @@ router.get('/clientesLogin/:email/:password', (req, res) => {
     console.log('req.params.email: ' + req.params.email);
     console.log('req.params.password: ' + req.params.password);
 
-    conexion.query('SELECT * FROM cliente WHERE correo = "' + req.params.email + '" AND password = "' + req.params.password + '"', function (error, results, fields) {
+    conexion.query('SELECT * FROM cliente c JOIN distrito d ON c.distrito = d.idDistrito ' + 
+    'WHERE c.correo = "' + req.params.email + '" AND c.password = "' + req.params.password + '"', function (error, results, fields) {
         if (error)
             throw error;
 
