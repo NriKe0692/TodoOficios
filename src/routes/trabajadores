@@ -177,4 +177,19 @@ router.get('/trabajadores/:id/proyectos', (req, res) => {
     });
 });
 
+router.get('/trabajadoresLogin/:email/:password', (req, res) => {
+    console.log(req.params);
+
+    console.log('req.params.email: ' + req.params.email);
+    console.log('req.params.password: ' + req.params.password);
+
+    conexion.query('SELECT * FROM trabajador WHERE correo = "' + req.params.email + '" AND password = "' + req.params.password + '"', function (error, results, fields) {
+        if (error){
+            throw error;
+        }
+
+        res.json(results);
+    });
+});
+
 module.exports = router;

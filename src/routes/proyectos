@@ -31,16 +31,16 @@ router.get('/proyectos', (req, res) => {
 
 
 router.post('/proyectos', (req, res) => {
-    const {idCliente, idTrabajador, especialidad, fecha, comentarioCliente} = req.body;
+    const { idCliente, idTrabajador, especialidad, fecha, comentarioCliente } = req.body;
 
-    if(idCliente && idTrabajador && especialidad && fecha){
-        conexion.query('INSERT INTO proyecto (idCliente, idTrabajador, especialidad, fecha, comentarioCliente) VALUES("' + idCliente + '", "' + idTrabajador + '", "' + especialidad + '", "' + fecha  + '", "' + comentarioCliente  + '")', function (error, results) {
+    if (idCliente && idTrabajador && especialidad && fecha) {
+        conexion.query('INSERT INTO proyecto (idCliente, idTrabajador, especialidad, fecha, comentarioCliente) VALUES("' + idCliente + '", "' + idTrabajador + '", "' + especialidad + '", "' + fecha + '", "' + comentarioCliente + '")', function (error, results) {
             if (error)
                 throw error;
 
-            res.send({message: 'Received'})
+            res.send({ message: 'Received' })
         });
-    }else{  
+    } else {
         res.send('Failed');
     }
 });
@@ -79,18 +79,76 @@ router.get('/proyectosCliente/:id', (req, res) => {
 });
 
 router.put('/proyectosCliente/:id/:nuevoEstado', (req, res) => {
-    conexion.query('UPDATE proyecto SET estado = '  + req.params.nuevoEstado + ' WHERE idProyecto = ' + req.params.id + '', function (error, results, fields) {
+    conexion.query('UPDATE proyecto SET estado = ' + req.params.nuevoEstado + ' WHERE idProyecto = ' + req.params.id + '', function (error, results, fields) {
         if (error)
             throw error;
 
-        res.json({"message": "Estado Actualizado con éxito."});
+        res.json({ "message": "Estado Actualizado con éxito." });
     });
 });
 
 
 
 router.get('/proyectosTrabajador/:id', (req, res) => {
-    conexion.query('SELECT * FROM proyecto WHERE idTrabajador = "' + req.params.id + '"', function (error, results, fields) {
+    /*
+     * SELECT t.nombreTrabajador,
+     * t.apellidoTrabajador,
+     * c.nombreCliente,
+     * c.apellidosCliente,
+     * e.nombreEspecialidad,
+     * p.fecha,
+     * d.nombreDistrito,
+     * c.direccion,
+     * p.descripcion,
+     * p.estado
+     * FROM proyecto p join trabajador t on p.idtrabajador= t.idtrabajador
+     * Join especialidad e on p.especialidad = e.idEspecialidad
+     * Join cliente c on p.idcliente = c.idcliente
+     * Join Distrito d on c.distrito = d.idDistrito
+     * WHERE t.idTrabajador = 1
+     */
+
+    conexion.query( 'SELECT t.nombreTrabajador, t.apellidoTrabajador, c.nombreCliente, c.apellidosCliente, e.nombreEspecialidad, p.fecha,' +
+                    'd.nombreDistrito, c.direccion, p.descripcion, p.estado ' + 
+                    'FROM proyecto p join trabajador t on p.idtrabajador= t.idtrabajador ' + 
+                    'Join especialidad e on p.especialidad = e.idEspecialidad ' + 
+                    'Join cliente c on p.idcliente = c.idcliente ' + 
+                    'Join Distrito d on c.distrito = d.idDistrito ' + 
+                    'WHERE t.idTrabajador = "' + req.params.id + '"', function (error, results, fields) {
+        if (error) {
+            throw error;
+        }
+
+        res.json(results);
+    });
+});
+
+router.get('/proyectosCliente/:id', (req, res) => {
+    /*
+     * SELECT t.nombreTrabajador,
+     * t.apellidoTrabajador,
+     * c.nombreCliente,
+     * c.apellidosCliente,
+     * e.nombreEspecialidad,
+     * p.fecha,
+     * d.nombreDistrito,
+     * c.direccion,
+     * p.descripcion,
+     * p.estado
+     * FROM proyecto p join trabajador t on p.idtrabajador= t.idtrabajador
+     * Join especialidad e on p.especialidad = e.idEspecialidad
+     * Join cliente c on p.idcliente = c.idcliente
+     * Join Distrito d on c.distrito = d.idDistrito
+     * WHERE c.idCliente = 1
+     */
+
+    conexion.query( 'SELECT t.nombreTrabajador, t.apellidoTrabajador, c.nombreCliente, c.apellidosCliente, e.nombreEspecialidad, p.fecha,' +
+                    'd.nombreDistrito, c.direccion, p.descripcion, p.estado ' + 
+                    'FROM proyecto p join trabajador t on p.idtrabajador= t.idtrabajador ' + 
+                    'Join especialidad e on p.especialidad = e.idEspecialidad ' + 
+                    'Join cliente c on p.idcliente = c.idcliente ' + 
+                    'Join Distrito d on c.distrito = d.idDistrito ' + 
+                    'WHERE c.idCliente = "' + req.params.id + '"', function (error, results, fields) {
         if (error) {
             throw error;
         }
