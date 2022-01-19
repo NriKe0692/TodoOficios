@@ -33,10 +33,11 @@ router.get('/trabajadores', (req, res) => {
 });
 
 router.post('/trabajadores', (req, res) => {
+    console.log('req: ' + JSON.stringify(req.body));
+
     const { nombreTrabajador, apellidoTrabajador, dni, direccion, distrito, telefono, especialidades, sobreMi, correo } = req.body;
 
     if (nombreTrabajador && apellidoTrabajador && dni && direccion && distrito && telefono && especialidades && sobreMi && correo) {
-
         conexion.query(`SELECT * FROM trabajador WHERE dni = "` + dni + '"', function (error, results, fields) {
             if (error) {
                 throw error;
@@ -83,10 +84,8 @@ router.post('/trabajadores', (req, res) => {
                         }
                     }
 
-                    console.log('ArrEspecialidadesPorCrear: ' + ArrEspecialidadesPorCrear);
-
                     if (ArrEspecialidadesPorCrear.length != 0) {
-                        conexion.query('INSERT INTO trabajador (nombreTrabajador, apellidoTrabajador, dni, direccion, distrito, telefono, sobreMi, correo) VALUES("' + nombreTrabajador + '", "' + apellidoTrabajador + '", "' + dni + '", "' + direccion + '", "' + distrito + '", "' + telefono + '", "' + sobreMi + '", "' + correo + '")', function (error, results) {
+                        /*conexion.query('INSERT INTO trabajador (nombreTrabajador, apellidoTrabajador, dni, direccion, distrito, telefono, sobreMi, correo, suscrito) VALUES("' + nombreTrabajador + '", "' + apellidoTrabajador + '", "' + dni + '", "' + direccion + '", "' + distrito + '", "' + telefono + '", "' + sobreMi + '", "' + correo + '", "' + 0 + '")', function (error, results) {
                             if (error) {
                                 throw error;
                             }
@@ -104,7 +103,21 @@ router.post('/trabajadores', (req, res) => {
                             }
 
                             res.send({ message: 'Se crearon las especialidades para el trabajador.' })
-                        });
+                        });*/
+                        
+                        for (var i = 0; i < ArrEspecialidadesPorCrear.length; i++) {
+                            conexion.query('INSERT INTO trabajador_especialidad (idTrabajador, idEspecialidad) VALUES("' + idTrabajador + '", "' + ArrEspecialidadesPorCrear[i] + '")', function (error, results) {
+                                if (error) {
+                                    throw error;
+                                }
+
+                                console.log('creado');
+
+                                //res.send({ message: 'Received' })
+                            });
+                        }
+
+                        res.send({ message: 'Se crearon las especialidades para el trabajador.' })
                     } else {
                         if (especialidades.length == 1) {
                             res.status(400).send({ message: 'Ya existe el trabajador con esa especialidad.' });
@@ -114,7 +127,7 @@ router.post('/trabajadores', (req, res) => {
                     }
                 });
             } else {
-                conexion.query('INSERT INTO trabajador (nombreTrabajador, apellidoTrabajador, dni, direccion, distrito, telefono, sobreMi, correo) VALUES("' + nombreTrabajador + '", "' + apellidoTrabajador + '", "' + dni + '", "' + direccion + '", "' + distrito + '", "' + telefono + '", "' + sobreMi + '", "' + correo + '")', function (error, results) {
+                conexion.query('INSERT INTO trabajador (nombreTrabajador, apellidoTrabajador, dni, direccion, distrito, telefono, sobreMi, correo, password, suscrito) VALUES("' + nombreTrabajador + '", "' + apellidoTrabajador + '", "' + dni + '", "' + direccion + '", "' + distrito + '", "' + telefono + '", "' + sobreMi + '", "' + correo + '", "' + dni + '", "' + 0 + '")', function (error, results) {
                     if (error) {
                         throw error;
                     }
@@ -133,19 +146,19 @@ router.post('/trabajadores', (req, res) => {
             }
         });
     } else {
-        res.send('Failed');
+        res.status(400).send('Failed');
     }
 });
 
 router.get('/trabajadores/:id', (req, res) => {
     console.log(req.params);
 
-    conexion.query("SELECT t.*, d.nombreDistrito, "+
+    conexion.query("SELECT t.*, d.nombreDistrito, " +
         "json_arrayagg(json_object('id', e.idEspecialidad,'nombre', e.nombreEspecialidad)) AS especialidades " +
-        "FROM trabajador t "+ 
-        "JOIN trabajador_especialidad te ON te.idTrabajador = t.idTrabajador " + 
+        "FROM trabajador t " +
+        "JOIN trabajador_especialidad te ON te.idTrabajador = t.idTrabajador " +
         "JOIN especialidad e ON te.idEspecialidad = e.idEspecialidad " +
-        'JOIN distrito d ON d.idDistrito = t.distrito ' + 
+        'JOIN distrito d ON d.idDistrito = t.distrito ' +
         'WHERE t.idTrabajador = ' + req.params.id, function (error, results, fields) {
             if (error)
                 throw error;
@@ -166,16 +179,16 @@ router.get('/trabajadoresEspecialidad/:id', (req, res) => {
 });
 
 router.get('/trabajadores/:id/proyectos', (req, res) => {
-    conexion.query('SELECT p.*, c.nombreCliente, e.nombreEspecialidad ' + 
+    conexion.query('SELECT p.*, c.nombreCliente, e.nombreEspecialidad ' +
         "FROM proyecto p " +
         'JOIN cliente c ON c.idCliente = p.idCliente ' +
         'JOIN especialidad e ON e.idEspecialidad = p.especialidad ' +
-        'WHERE p.idTrabajador = ' + req.params.id, function(error, results, fields) {
-        if (error)
-            throw error;
+        'WHERE p.idTrabajador = ' + req.params.id, function (error, results, fields) {
+            if (error)
+                throw error;
 
-        res.json(results);
-    });
+            res.json(results);
+        });
 });
 
 router.get('/trabajadoresLogin/:email/:password', (req, res) => {
@@ -185,7 +198,7 @@ router.get('/trabajadoresLogin/:email/:password', (req, res) => {
     console.log('req.params.password: ' + req.params.password);
 
     conexion.query('SELECT * FROM trabajador WHERE correo = "' + req.params.email + '" AND password = "' + req.params.password + '"', function (error, results, fields) {
-        if (error){
+        if (error) {
             throw error;
         }
 

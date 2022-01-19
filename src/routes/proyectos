@@ -34,7 +34,7 @@ router.post('/proyectos', (req, res) => {
     const { idCliente, idTrabajador, especialidad, fecha, comentarioCliente } = req.body;
 
     if (idCliente && idTrabajador && especialidad && fecha) {
-        conexion.query('INSERT INTO proyecto (idCliente, idTrabajador, especialidad, fecha, comentarioCliente) VALUES("' + idCliente + '", "' + idTrabajador + '", "' + especialidad + '", "' + fecha + '", "' + comentarioCliente + '")', function (error, results) {
+        conexion.query('INSERT INTO proyecto (idCliente, idTrabajador, especialidad, fecha, comentarioCliente, estado) VALUES("' + idCliente + '", "' + idTrabajador + '", "' + especialidad + '", "' + fecha + '", "' + comentarioCliente + '", "' + 1 + '")', function (error, results) {
             if (error)
                 throw error;
 
